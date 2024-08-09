@@ -1,0 +1,92 @@
+import curses
+
+def print_board(stdscr, board, message):
+    stdscr.clear()
+    height, width = stdscr.getmaxyx()
+    board_win = curses.newwin(9, 21, (height // 2 - 5), (width // 2 - 10))
+    board_win.bkgd(curses.COLOR_BLACK)
+    board_win.attron(curses.color_pair(1))
+
+    # Print board
+    for i in range(3):
+        for j in range(3):
+            board_win.addstr(i * 3, j * 7, board[i * 3 + j], curses.A_BOLD)
+    board_win.refresh()
+
+    # Print message
+    message_win = curses.newwin(3, width, height - 3, 0)
+    message_win.bkgd(curses.COLOR_BLACK)
+    message_win.attron(curses.color_pair(2))
+    message_win.addstr(1, 1, message)
+    message_win.refresh()
+
+def check_winner(board, player):
+    win_conditions = [
+        (0, 1, 2), (3, 4, 5), (6, 7, 8),  # Rows
+        (0, 3, 6), (1, 4, 7), (2, 5, 8),  # Columns
+        (0, 4, 8), (2, 4, 6)              # Diagonals
+    ]
+    for condition in win_conditions:
+        if board[condition[0]] == board[condition[1]] == board[condition[2]] == player:
+            return True
+    return False
+
+def check_full(board):
+    return all(cell in ['X', 'O'] for cell in board)
+
+def main(stdscr):
+    curses.curs_set(0)
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+
+    board = [' '] * 9
+    players = ['X', 'O']
+    turn = 0
+
+    while True:
+        print_board(stdscr, board, f"Turno del jugador {players[turn % 2]}")
+
+        try:
+            key = stdscr.getch()
+            if key == ord('q'):
+                break
+
+            position = -1
+            if key in [curses.KEY_1, ord('1')]:
+                position = 0
+            elif key in [curses.KEY_2, ord('2')]:
+                position = 1
+            elif key in [curses.KEY_3, ord('3')]:
+                position = 2
+            elif key in [curses.KEY_4, ord('4')]:
+                position = 3
+            elif key in [curses.KEY_5, ord('5')]:
+                position = 4
+            elif key in [curses.KEY_6, ord('6')]:
+                position = 5
+            elif key in [curses.KEY_7, ord('7')]:
+                position = 6
+            elif key in [curses.KEY_8, ord('8')]:
+                position = 7
+            elif key in [curses.KEY_9, ord('9')]:
+                position = 8
+
+            if position != -1 and board[position] == ' ':
+                board[position] = players[turn % 2]
+
+                if check_winner(board, players[turn % 2]):
+                    print_board(stdscr, board, f"¡El jugador {players[turn % 2]} gana!")
+                    stdscr.getch()
+                    break
+
+                if check_full(board):
+                    print_board(stdscr, board, "¡Es un empate!")
+                    stdscr.getch()
+                    break
+
+                turn += 1
+        except Exception as e:
+            print(e)
+
+if __name__ == "__main__":
